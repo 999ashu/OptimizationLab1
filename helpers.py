@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 ## Plot builder
-def plot(func, results_list, grid):
+def plot(func, results_list, grid, label):
     if not isinstance(results_list, list):
         results_list = [results_list]
 
@@ -21,7 +21,7 @@ def plot(func, results_list, grid):
 
     for res in results_list:
         path = res.x_history
-        plt.plot(path[:, 0], path[:, 1], label="GD path", marker='o')
+        plt.plot(path[:, 0], path[:, 1], label=label, marker='o')
         plt.plot(path[-1, 0], path[-1, 1], 'x', markersize=10)
 
     plt.xlim(grid)
@@ -41,15 +41,15 @@ def print_output(init, gd, func, grad, optimum, label=None, grid=(-6, 6)):
     print(f"{'=' * 90}")
     print(f"Method: {label is not None and label or gd.__name__}")
     print(f"Initial point: {init}")
-    print(f"Real minimum: (3.0, -2.0)")
+    print(f"Real minimum: {optimum}")
     print(f"{'=' * 90}")
     print(f"{'Method':<15} {'Found point':<20} {'f(x)':<10} {'Iterations':<15} {'Evals':<12} {'Error':<10}")
     print(f"{'-' * 90}")
     print(
-        f"{'Stat':<15} ({res.x[0]:.3f}, {res.x[1]:.3f}) {" ":<5} {res.fun:<13.3f} {res.nit:<13} {res.nfev:<10} {error:<10.6f}")
+        f"{'Stat':<15} ({res.x[0]:.3f}, {res.x[1]:.3f}) {" ":<5} {res.fun:<13.3f} {res.nit:<13} {res.nfev + res.njev:<10} {error:<10.6f}")
     print(f"{'=' * 90}")
 
-    plot(func, res, grid)
+    plot(func, res, grid, label is not None and label or gd.__name__)
 
 
 # Symmetrical parabola

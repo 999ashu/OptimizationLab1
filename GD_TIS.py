@@ -20,12 +20,12 @@ from scipy.optimize import OptimizeResult
 # In[16]:
 
 
-def taylor_interpolation_search(f, a, b, tol=1e-6, max_iter=1000):
+def taylor_interpolation_search(f, a, b, max_iter=1000, tol=1e-6):
     nfev = 0
-    iteration = 0
+    nit = 0
     x_min = None
 
-    for iteration in range(max_iter):
+    for nit in range(max_iter):
         midpoint = (a + b) / 2
         f_mid = f(midpoint)
         f_a = f(a)
@@ -67,8 +67,7 @@ def taylor_interpolation_search(f, a, b, tol=1e-6, max_iter=1000):
         x=x_min,
         fun=f(x_min),
         nfev=nfev,
-        nit=iteration + 1,
-        success=(iteration < max_iter)
+        nit=nit + 1,
     )
 
 
@@ -77,31 +76,27 @@ def taylor_interpolation_search(f, a, b, tol=1e-6, max_iter=1000):
 # In[17]:
 
 
-def gd_tis(f, grad_f, x0, tol=1e-6, max_iter=10000):
+def gd_tis(f, grad_f, x0, max_iter=1000, tol=1e-6):
     x = np.array(x0, dtype=float)
 
     nit = 0
     nfev = 1
-    ngev = 0
     x_history = [x.copy()]
 
     for nit in range(max_iter):
         g = grad_f(x)
-        ngev += 1
 
         if np.linalg.norm(g) < tol:
             break
 
-        d = -g
-
         def f_along_line(alpha):
-            return f(x + alpha * d)
+            return f(x + alpha * -g)
 
-        alpha_result = taylor_interpolation_search(f_along_line, 0, 1.0, tol=tol, max_iter=max_iter)
+        alpha_result = taylor_interpolation_search(f_along_line, 0, 1.0, max_iter=max_iter, tol=tol)
         alpha = alpha_result.x
         nfev += alpha_result.nfev
 
-        x_new = x + alpha * d
+        x_new = x + alpha * -g
         x_history.append(x_new.copy())
 
         if np.linalg.norm(x_new - x) < tol:
@@ -117,9 +112,8 @@ def gd_tis(f, grad_f, x0, tol=1e-6, max_iter=10000):
     result = OptimizeResult(
         x=x,
         fun=fun,
-        jac=g,
         nfev=nfev,
-        njev=ngev,
+        njev=nit + 1,
         nit=nit + 1,
         success=nit < max_iter - 1 or np.linalg.norm(g) < tol,
         x_history=np.array(x_history)
@@ -151,7 +145,7 @@ print_output([-5, 3], gd_tis, func_sp, grad_sp, [3, -2])
 # In[20]:
 
 
-print_output([-3, -25], gd_tis, func_re, grad_re, [-18, 16], [-30, 30])
+print_output([-3, -25], gd_tis, func_re, grad_re, [-18, 16], grid=[-30, 30])
 
 
 # ### Elliptical function with scale: $8(x - 3)^2 + (y + 1)^2$

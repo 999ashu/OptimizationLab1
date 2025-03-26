@@ -5,7 +5,7 @@
 
 # ## Needed Libraries import
 
-# In[30]:
+# In[43]:
 
 
 from helpers import *
@@ -16,7 +16,7 @@ from scipy.optimize import OptimizeResult
 
 # ### General gradient descent implementation
 
-# In[31]:
+# In[44]:
 
 
 def gd_lrs(f, grad_f, x0, learning_rate_schedule, tol=1e-6, max_iter=1000):
@@ -35,12 +35,26 @@ def gd_lrs(f, grad_f, x0, learning_rate_schedule, tol=1e-6, max_iter=1000):
         if np.linalg.norm(grad) < tol:
             break
 
-    return OptimizeResult(x=x, fun=f(x), nit=nit + 1, nfev=nit + 1, x_history=np.array(x_history))
+    return OptimizeResult(x=x,
+                          fun=f(x),
+                          nfev=0,
+                          njev=nit + 1,
+                          nit=nit + 1,
+                          x_history=np.array(x_history))
+
+
+# ### Const Decay
+
+# In[45]:
+
+
+def const_decay(decay_rate):
+    return decay_rate
 
 
 # ### Step Decay
 
-# In[32]:
+# In[46]:
 
 
 def step_decay(init, drop_rate, step_size, nit):
@@ -49,7 +63,7 @@ def step_decay(init, drop_rate, step_size, nit):
 
 # ### Exponential Decay
 
-# In[33]:
+# In[47]:
 
 
 def exponential_decay(init, decay_rate, nit):
@@ -58,7 +72,7 @@ def exponential_decay(init, decay_rate, nit):
 
 # ### Cosine Annealing
 
-# In[34]:
+# In[48]:
 
 
 def cosine_annealing(init, nit, lr_max, eta_min=0):
@@ -67,17 +81,18 @@ def cosine_annealing(init, nit, lr_max, eta_min=0):
 
 # ### List of modes for generalization
 
-# In[35]:
+# In[49]:
 
 
-decay_modes = [(lambda k: step_decay(0.1, 0.5, 10, k), "GD step decay"),
+decay_modes = [(lambda k: const_decay(0.1), "GD const decay"),
+               (lambda k: step_decay(0.1, 0.5, 10, k), "GD step decay"),
                (lambda k: exponential_decay(0.1, 0.01, k), "GD exponential decay"),
                (lambda k: cosine_annealing(0.1, k, 100, eta_min=0.01), "GD cosine annealing")]
 
 
 # ### Extraction for reuse
 
-# In[36]:
+# In[50]:
 
 
 # !jupyter nbconvert --to python GD_LRS.ipynb
@@ -89,7 +104,7 @@ decay_modes = [(lambda k: step_decay(0.1, 0.5, 10, k), "GD step decay"),
 
 # ### Step decay
 
-# In[37]:
+# In[51]:
 
 
 for decay in decay_modes:
@@ -103,7 +118,7 @@ for decay in decay_modes:
 
 # ### Rotated elliptical function: $2(x + 2)^2 + 4xy + 3(y - 4)^2$
 
-# In[38]:
+# In[52]:
 
 
 for decay in decay_modes:
@@ -113,14 +128,14 @@ for decay in decay_modes:
                  grad_re,
                  [-18, 16],
                  decay[1],
-                 [-30, 30])
+                 grid=[-30, 30])
 
 
 # ### Elliptical function with scale: $8(x - 3)^2 + (y + 1)^2$
 
 # ### Step decay
 
-# In[39]:
+# In[53]:
 
 
 for decay in decay_modes:
@@ -128,6 +143,6 @@ for decay in decay_modes:
                  lambda *args, **kwargs: gd_lrs(*args, learning_rate_schedule=decay[0], **kwargs),
                  func_es,
                  grad_es,
-                 [3, -2],
+                 [3, -1],
                  decay[1])
 
